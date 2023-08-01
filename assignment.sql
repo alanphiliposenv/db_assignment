@@ -28,10 +28,10 @@ create table product (
 "updated_at" TIMESTAMP not null default now(),
 "deleted_at" TIMESTAMP,
 "id" uuid not null default uuid_generate_v4(),
-"name"  character varying not null, 
-"description" character varying not null, 
+"name"  character varying not null,
+"description" character varying not null,
 "price" float not null,
-"sku" character varying not null, 
+"sku" character varying not null,
 "category" character varying not null,
 constraint "PK_product_id" primary key ("id")
 );
@@ -76,7 +76,6 @@ values
 ;
 
 select * from address;
-
 
 INSERT INTO public.product
 ("name", description, price, sku, category)
@@ -128,3 +127,37 @@ create index product_name on product("name");
 create index product_category on product("category");
 create index product_price on product("price");
 create index order_user_id on user_order("user_id");
+
+drop index product_category;
+
+alter table product add column product_category_id uuid;
+
+select * from product;
+
+create table product_category (
+"created_at" TIMESTAMP not null default now(),
+"updated_at" TIMESTAMP not null default now(),
+"deleted_at" TIMESTAMP,
+"id" uuid not null default uuid_generate_v4(),
+"name" character varying not null
+);
+
+insert into product_category
+(name)
+select distinct category as "name" from product;
+
+select * from product_category;
+
+update product as p set product_category_id = (select id from product_category pc where p.category = pc.name)
+
+select * from product;
+
+alter table product drop column category;
+
+alter table product alter column product_category_id set not null;
+
+alter table product_category add constraint "PK_product_category_id" primary key ("id");
+
+alter table product add constraint "FK_product_category_id" foreign key ("product_category_id") references product_category("id");
+
+create index product_category_idx on product("product_category_id");
